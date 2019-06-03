@@ -8,9 +8,9 @@ from OpenGL.GLUT import *
 import cv2
 
 # CONFIGURATION
-WIDTH = 720
-HEIGHT = 480
-FPS = 60
+WIDTH = 800
+HEIGHT = 448
+FPS = 30
 
 ###########################################
 
