@@ -46,7 +46,6 @@ class RapTime:
         glClearColor(0.7, 0.7, 0.7, 0.7)
 
     def idle(self):
-        print("idle")
         glutPostRedisplay()
 
     def reshape(self, w, h):

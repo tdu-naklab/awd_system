@@ -33,7 +33,7 @@ print(format("capture start", "*^32"))
 
 def draw():
     ret, frame = cap.read()
-    if ret is None:
+    if frame is None:
         return
 
     speedAnalysis.draw(frame)
