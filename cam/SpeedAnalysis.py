@@ -11,10 +11,10 @@ class SpeedAnalysis:
         self.height = height
         self.capture = capture
 
-        glutInitWindowPosition(0, 0)
+        glutInitWindowPosition(0, height + 80)
         glutInitWindowSize(width, height)
         glutInit(sys.argv)
-        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE)
+        glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE)
         self.window = glutCreateWindow("SpeedAnalysis")
         glutDisplayFunc(draw)
         glutReshapeFunc(self.reshape)
@@ -47,6 +47,7 @@ class SpeedAnalysis:
         glClearColor(0.7, 0.7, 0.7, 0.7)
 
     def idle(self):
+        print("idle")
         glutPostRedisplay()
 
     def reshape(self, w, h):
