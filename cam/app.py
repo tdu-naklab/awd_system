@@ -4,6 +4,7 @@ from SpeedAnalysis import *
 from RapTime import *
 from OpenGL.GL import *
 from OpenGL.GLUT import *
+import time
 
 import cv2
 
@@ -45,6 +46,11 @@ raptime = RapTime(cap, WIDTH, HEIGHT, draw)
 
 
 def main():
+    ret, frame = cap.read()
+    if frame is None:
+        print("error: can not read camera image.")
+        cv2.destroyAllWindows()
+        sys.exit()
     # glutDisplayFunc()
     glutMainLoop()
 

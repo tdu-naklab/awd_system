@@ -14,7 +14,7 @@ class RapTime:
         glutInitWindowPosition(0, 0)
         glutInitWindowSize(width, height)
         glutInit(sys.argv)
-        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE)
+        glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE)
         self.window = glutCreateWindow("SpeedAnalysis")
         glutDisplayFunc(draw)
         glutReshapeFunc(self.reshape)
@@ -24,10 +24,6 @@ class RapTime:
 
     def draw(self, frame):
         print(format("loop start, num: {}".format(self.window), "*^32"))
-        ret, frame = self.capture.read()
-        if ret is None:
-            print("ret is None, num: {}".format(self.window))
-            return
 
         glutSetWindow(self.window)
         start = time.time()
@@ -46,6 +42,7 @@ class RapTime:
         glClearColor(0.7, 0.7, 0.7, 0.7)
 
     def idle(self):
+        print("idle")
         glutPostRedisplay()
 
     def reshape(self, w, h):
