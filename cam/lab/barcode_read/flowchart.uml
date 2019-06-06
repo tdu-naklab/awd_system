@@ -7,32 +7,32 @@ start
 repeat
     : n行目を選択;
     : 数値を微分;
-        note right: コードが書きやすく成るだけなので\n別に微分しなくていい
+        note right: 微分してあげるとコードが書きやすくなる
     repeat
         : offset ?: 0\nより走査し、数値-255:\n白から黒に変わる境目 を探す;
             note right: 一本目のスタートバーの\n開始点を検出
         : 数値-255が最初に見つかった所から\n同様に数値255:\n黒から白に変わる境目 を探す;
             note right: 一本目のスタートバーの\n終了点を検出
         : 一本目のスタートバーの開始点と終了点\nからスタートバーのサイズを計算;
-            note right: これのサイズを基準に\nバーコードを検出する
+            note right: このサイズを基準に\nバーコードを検出する
         while (数値を走査)
             if (0以外の数値) then (true)
                 : 前回の0以外の数値からの距離を計算する;
                 : スタートバーのサイズ何本分か計算する;
-                note right: ±15%のサイズを許容する\n※要参照
+                note right: ±15%のサイズを許容する\n※要調整
                 : 検出したバーの数だけリストに数値を追加する;
                 note right: 黒を1、白を0とする
             else (false)
             endif
         endwhile
-        : 検知したリストから各桁を取り出して\nパターンマッチさせてバーコードをデコードする|
+        : 検出したリストから各桁を取り出して\nパターンマッチさせてバーコードをデコードする|
         if (バーコードが読み取れた) then (true)
             : メイン処理にバーコードの番号を送信/
-            stop
+            end
         else (false)
             : offset += スタートバーのサイズ]
         endif
-    repeat while (k < width)
+    repeat while (offset < width)
 repeat while (n < height)
 
 :Finalize;
