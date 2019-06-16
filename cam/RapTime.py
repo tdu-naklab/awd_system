@@ -2,11 +2,16 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 import cv2
 import time
+import pandas as pd
+from pyzbar.pyzbar import decode
 
 
 class RapTime:
-    def __init__(self, capture, width, height, draw):
+    logger = None
+
+    def __init__(self, logger, capture, width, height, draw):
         print("start")
+        self.logger = logger
         self.width = width
         self.height = height
         self.capture = capture
@@ -25,10 +30,16 @@ class RapTime:
     def draw(self, frame):
         print(format("loop start, num: {}".format(self.window), "*^32"))
 
+        if frame is None:
+            return
+
         glutSetWindow(self.window)
         start = time.time()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = cv2.flip(frame, -1)
+        frame = cv2.flip(frame, 0)
+
+        data = decode(frame)
+        print(data)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glColor3f(1.0, 1.0, 1.0)
