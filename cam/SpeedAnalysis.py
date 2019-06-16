@@ -28,7 +28,7 @@ class SpeedAnalysis:
         glutSetWindow(self.window)
         start = time.time()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = cv2.flip(frame, -1)
+        frame = cv2.flip(frame, 0)
 
         # ここに処理を書く
 

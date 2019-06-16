@@ -5,6 +5,7 @@ from RapTime import *
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 import time
+from logging import getLogger, StreamHandler, DEBUG, INFO, WARN
 
 import cv2
 
@@ -41,8 +42,20 @@ def draw():
     raptime.draw(frame)
 
 
+logger = getLogger(__name__)
+handler = StreamHandler()
+
+handler.setLevel(DEBUG)
+logger.setLevel(DEBUG)
+
+handler.setLevel(INFO)
+logger.setLevel(INFO)
+
+logger.addHandler(handler)
+logger.propagate = False
+
 speedAnalysis = SpeedAnalysis(cap, WIDTH, HEIGHT, draw)
-raptime = RapTime(cap, WIDTH, HEIGHT, draw)
+raptime = RapTime(logger, cap, WIDTH, HEIGHT, draw)
 
 
 def main():
