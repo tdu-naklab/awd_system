@@ -4,19 +4,21 @@
 ## うごかしかた(without RasPi)
 
 ### Required
-Python >= 3.7.3
+pipenv
+
 別途OpenGL必要かも　※要参照
 
 ### Install
 ```
-$ cd cam
-$ pip install -r requirements.txt
+$ sudo apt install libzbar0 libzbar-dev
+$ git clone git@github.com:tdu-naklab/awd_system.git
+$ cd ./awd_system
+$ pipenv install
 ```
 
 ### Running
 ```
-$ cd cam
-$ python app.py
+$ pipenv run python ./cam/app.py
 ```
 
 
