@@ -19,13 +19,14 @@ class State(Enum):
     WAITING = 0
     REGISTERING = 1
     RACING = 2
+    FINISHED = 3
 
 
 def main():
     state = State.WAITING
 
-    # cap = cv2.VideoCapture('./miniyonku3.mp4')
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture('./miniyonku3.mp4')
+    # cap = cv2.VideoCapture(0)
 
     cap.set(cv2.CAP_PROP_FPS, FPS)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
@@ -40,6 +41,7 @@ def main():
     while True:
         ret, frame = cap.read()
         screen = frame.copy()
+        key = cv2.waitKey(20) & 0xFF
 
         # 常に表示する項目
         result = [None, None, None]
@@ -50,25 +52,26 @@ def main():
             screen = cv2.line(screen, (0, SEARCH_LINE[i]), (WIDTH, SEARCH_LINE[i]), (0, 0, 255), 1)
             screen = cv2.line(screen, (0, SEARCH_LINE[i] + 150), (WIDTH, SEARCH_LINE[i] + 150), (0, 255, 0), 1)
             # プレイヤーのバーコードを表示
-            cv2.putText(screen, str(players[i]), (int(WIDTH/4*1), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 0), 2, cv2.LINE_AA)
+            cv2.putText(screen, str(players[i]), (int(WIDTH/4*1), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (33, 33, 33), 2, cv2.LINE_AA)
             # 検出したバーコードを表示
-            cv2.putText(screen, str(result[i]), (int(WIDTH/4*2), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 0), 2, cv2.LINE_AA)
+            cv2.putText(screen, str(result[i]), (int(WIDTH/4*2), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (33, 33, 33), 2, cv2.LINE_AA)
             # タイムを表示
-            cv2.putText(screen, str(players_time[i]), (int(WIDTH/4*3), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 0), 2, cv2.LINE_AA)
+            cv2.putText(screen, str(players_time[i]), (int(WIDTH/4*3), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (33, 33, 33), 2, cv2.LINE_AA)
 
         # ここからstate別処理
         # WAITING
         if state == State.WAITING:
-            cv2.putText(screen, 'Stop', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (0, 0, 255), 4, cv2.LINE_AA)
+            cv2.putText(screen, 'Waiting', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (80, 175, 76), 4, cv2.LINE_AA)
             # 変数初期化
             players = [None, None, None]
             detected_players = [None, None, None]
+            players_start_time = [None, None, None]
             players_time = [None, None, None]
             last_detected_players = [None, None, None]
 
         # REGISTERING
         elif state == State.REGISTERING:
-            cv2.putText(screen, 'Registering', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (0, 255, 0), 4, cv2.LINE_AA)
+            cv2.putText(screen, 'Registering', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (0, 152, 255), 4, cv2.LINE_AA)
             # バーコードを検出
             if any(result):
                 # 登録用APIを叩く処理
@@ -76,7 +79,7 @@ def main():
 
         # RACING
         elif state == State.RACING:
-            cv2.putText(screen, 'Running', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (255, 0, 0), 4, cv2.LINE_AA)
+            cv2.putText(screen, 'Running', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (54, 67, 244), 4, cv2.LINE_AA)
 
             for i in range(3):
                 # 検出時
@@ -98,20 +101,25 @@ def main():
                             players_time[i] = round(time.time() - players_start_time[i], 3)
                             print(players_time[i])
 
+        # FINISHED
+        elif state == State.FINISHED:
+            cv2.putText(screen, 'Processing', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (243, 150, 33), 4, cv2.LINE_AA)
+
         # 描画
         cv2.imshow('screen', screen)
 
         # キー操作
-        key = cv2.waitKey(20) & 0xFF
         if key == 27:  # Escape プログラム終了
             break
+
         elif key == ord(' '):  # Space 次へ進む
             if state == State.WAITING:
                 state = State.REGISTERING
             elif state == State.REGISTERING:
                 state = State.RACING
             elif state == State.RACING:
-                state = State.WAITING
+                state = State.FINISHED
+
         elif key == ord('q'):  # Q 試合やりなおし
             detected_players = [None, None, None]
             players_time = [None, None, None]
