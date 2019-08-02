@@ -56,7 +56,10 @@ def main():
             # 検出したバーコードを表示
             cv2.putText(screen, str(result[i]), (int(WIDTH/4*2), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (33, 33, 33), 2, cv2.LINE_AA)
             # タイムを表示
-            cv2.putText(screen, str(players_time[i]), (int(WIDTH/4*3), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (33, 33, 33), 2, cv2.LINE_AA)
+            if players_time[i] is None:
+                cv2.putText(screen, str(players_time[i]), (int(WIDTH/4*3), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (33, 33, 33), 2, cv2.LINE_AA)
+            else:
+                cv2.putText(screen, str(players_time[i]), (int(WIDTH/4*3), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (54, 67, 244), 2, cv2.LINE_AA)
 
         # ここからstate別処理
         # WAITING
@@ -104,6 +107,8 @@ def main():
         # FINISHED
         elif state == State.FINISHED:
             cv2.putText(screen, 'Processing', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (243, 150, 33), 4, cv2.LINE_AA)
+            for i in range(3):
+                cv2.putText(screen, (str(players_time[i]) + ': OK?'), (int(WIDTH / 4 * 3), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (54, 67, 244), 4, cv2.LINE_AA)
 
         # 描画
         cv2.imshow('screen', screen)
@@ -120,7 +125,7 @@ def main():
             elif state == State.RACING:
                 state = State.FINISHED
 
-        elif key == ord('q'):  # Q 試合やりなおし
+        elif state == State.REGISTERING and key == ord('q'):  # Q 試合やりなおし
             detected_players = [None, None, None]
             players_time = [None, None, None]
             last_detected_players = [None, None, None]
