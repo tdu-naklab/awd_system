@@ -25,18 +25,18 @@ class State(Enum):
 def main():
     state = State.WAITING
 
-    cap = cv2.VideoCapture('./miniyonku3.mp4')
-    # cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture('./miniyonku4.mp4')
+    cap = cv2.VideoCapture(0)
 
     cap.set(cv2.CAP_PROP_FPS, FPS)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, HEIGHT)
 
     players = [None, None, None]
-    detected_players = [None, None, None]
+    detected_players_array = [[], [], []]
     players_start_time = [None, None, None]
     players_time = [None, None, None]
-    last_detected_players = [None, None, None]
+    players_mask = [False, False, False]
 
     while True:
         ret, frame = cap.read()
@@ -67,10 +67,10 @@ def main():
             cv2.putText(screen, 'Waiting', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (80, 175, 76), 4, cv2.LINE_AA)
             # 変数初期化
             players = [None, None, None]
-            detected_players = [None, None, None]
+            detected_players_array = [[], [], []]
             players_start_time = [None, None, None]
             players_time = [None, None, None]
-            last_detected_players = [None, None, None]
+            players_mask = [False, False, False]
 
         # REGISTERING
         elif state == State.REGISTERING:
@@ -88,18 +88,17 @@ def main():
                 # 検出時
                 if result[i] is not None:
                     # 初回
-                    if detected_players[i] is None:
+                    if len(detected_players_array[i]) == 0:
                         print('started: ' + result[i])
                         players[i] = result[i]
-                        detected_players[i] = result[i]
-                        last_detected_players[i] = result[i]
+                        detected_players_array[i].append(result[i])
                         players_start_time[i] = time.time()
                     # 2回目以降
-                    elif result[i] != last_detected_players[i]:
+                    elif time.time() - players_start_time[i] > 1:
                         print('detected: ' + result[i])
-                        last_detected_players[i] = result[i]
+                        detected_players_array[i].append(result[i])
                         # ゴール時
-                        if last_detected_players[i] == detected_players[i]:
+                        if detected_players_array[i][0] == detected_players_array[i][-1]:
                             print('goal: ' + result[i])
                             players_time[i] = round(time.time() - players_start_time[i], 3)
                             print(players_time[i])
