@@ -9,6 +9,8 @@ verify_ssl = true
 numpy = "*"
 opencv-python = "*"
 pyopengl = "*"
+zbarlight = "*"
+pillow = "*"
 
 [requires]
 python_version = "3.7"
