@@ -10,7 +10,7 @@ import zbarlight
 WIDTH = 1920
 HEIGHT = 1080
 FPS = 60
-SEARCH_LINE = [250, 550, 880]
+SEARCH_LINE = [250, 550, 850]
 SERVER_URL = 'http://localhost:3000'
 HTTP_HEADERS = {'Content-Type": "application/json'}
 
@@ -125,7 +125,7 @@ def main():
             elif state == State.RACING:
                 state = State.FINISHED
 
-        elif state == State.REGISTERING and key == ord('q'):  # Q 試合やりなおし
+        elif state == State.RACING and key == ord('q'):  # Q 試合やりなおし
             detected_players = [None, None, None]
             players_time = [None, None, None]
             last_detected_players = [None, None, None]
