@@ -125,9 +125,10 @@ def main():
                 state = State.FINISHED
 
         elif state == State.RACING and key == ord('q'):  # Q 試合やりなおし
-            detected_players = [None, None, None]
+            players = [None, None, None]
+            detected_players_array = [[], [], []]
+            players_start_time = [None, None, None]
             players_time = [None, None, None]
-            last_detected_players = [None, None, None]
 
     cap.release()
     cv2.destroyAllWindows()
