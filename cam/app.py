@@ -98,7 +98,7 @@ def main():
                         print('detected: ' + result[i])
                         detected_players_array[i].append(result[i])
                         # ゴール時
-                        if detected_players_array[i][0] == detected_players_array[i][-1]:
+                        if detected_players_array[i][0] == detected_players_array[i][-1] and players_time[i] is None:
                             print('goal: ' + result[i])
                             players_time[i] = round(time.time() - players_start_time[i], 3)
                             print(players_time[i])
