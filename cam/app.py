@@ -12,7 +12,7 @@ WIDTH = 1920
 HEIGHT = 1080
 FPS = 60
 SEARCH_LINE = [250, 550, 850]
-SERVER_URL = 'http://localhost:8080'
+SERVER_URL = 'http://localhost:3000'
 HTTP_HEADERS = {'Content-Type': 'application/json', 'charset': 'utf-8'}
 COURSE_NUM = 1
 
@@ -55,8 +55,10 @@ def main():
         # 常に表示する項目
         result = [None, None, None]
         for i in range(3):
+            result[i], detected_pos = read_barcode(frame, SEARCH_LINE[i])
+            if detected_pos is not None:
+                screen = cv2.line(screen, (detected_pos, SEARCH_LINE[i] + 150), (detected_pos, SEARCH_LINE[i] - 150), (255, 0, 0), 2)
             # 走査範囲を表す線を描画
-            result[i] = read_barcode(frame, SEARCH_LINE[i])
             screen = cv2.line(screen, (0, SEARCH_LINE[i] - 150), (WIDTH, SEARCH_LINE[i] - 150), (0, 255, 0), 1)
             screen = cv2.line(screen, (0, SEARCH_LINE[i]), (WIDTH, SEARCH_LINE[i]), (0, 0, 255), 1)
             screen = cv2.line(screen, (0, SEARCH_LINE[i] + 150), (WIDTH, SEARCH_LINE[i] + 150), (0, 255, 0), 1)
@@ -91,10 +93,12 @@ def main():
                 for i in range(3):
                     if result[i] is not None:
                         players[i] = result[i]
+                        players_mask[i] = True
 
             cv2.putText(screen, str(players) + 'OK?', (0, 100), cv2.FONT_HERSHEY_PLAIN, 2, (0, 152, 255), 2, cv2.LINE_AA)
             if reg_flg is True:
                 cv2.putText(screen, 'DONE RACE_ID: ' + str(race_id), (0, 150), cv2.FONT_HERSHEY_PLAIN, 2, (0, 152, 255), 2, cv2.LINE_AA)
+                cv2.putText(screen, 'PLAYERS MASK: ' + str(players_mask), (0, 200), cv2.FONT_HERSHEY_PLAIN, 2, (0, 152, 255), 2, cv2.LINE_AA)
             if key == ord('y'):
                 players_data = []
                 for i in range(3):
@@ -124,26 +128,36 @@ def main():
                     # 初回
                     if len(detected_players_array[i]) == 0:
                         sio.emit('race_started', {'course': COURSE_NUM, 'lane': i+1})
-                        print('started: ' + result[i])
 
                         detected_players_array[i].append(result[i])
                         players_start_time[i] = time.time()
                     # 2回目以降
                     elif time.time() - players_start_time[i] > 1:
-                        print('detected: ' + result[i])
                         detected_players_array[i].append(result[i])
                         # ゴール時
                         if detected_players_array[i][0] == detected_players_array[i][-1] and players_time[i] is None:
-                            print('goal: ' + result[i])
                             players_time[i] = round(time.time() - players_start_time[i], 3)
                             print(players_time[i])
-                            sio.emit('race_finished', {'course': COURSE_NUM, 'lane': i+1})
+
+                            url = SERVER_URL + '/races/' + str(race_id)
+                            print(url)
+                            json_data = {
+                                'barcode': result[i],
+                                'raptime': int(players_time[i]*1000)
+                            }
+                            print(json.dumps(json_data).encode())
+                            req = urllib.request.Request(url, json.dumps(json_data).encode(), HTTP_HEADERS)
+                            with urllib.request.urlopen(req) as res:
+                                body = res.read()
+                                sio.emit('race_finished', {'course': COURSE_NUM, 'lane': i+1})
 
         # FINISHED
         elif state == State.FINISHED:
-            cv2.putText(screen, 'Processing', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (243, 150, 33), 4, cv2.LINE_AA)
+            sio.emit('race_end', race_id)
             for i in range(3):
-                cv2.putText(screen, (str(players_time[i]) + ': OK?'), (int(WIDTH / 4 * 3), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (54, 67, 244), 4, cv2.LINE_AA)
+                cv2.putText(screen, (str(players_time[i]) + ': OK'), (int(WIDTH / 4 * 3), SEARCH_LINE[i]), cv2.FONT_HERSHEY_PLAIN, 2, (54, 67, 244), 4, cv2.LINE_AA)
+
+            state = State.WAITING
 
         # 描画
         cv2.imshow('screen', screen)
@@ -194,9 +208,9 @@ def read_barcode(frame, y):
 
             if detected_barcode is not None:
                 result = detected_barcode[0].decode('utf-8')[1:7]
-                return result
+                return result, detected_pos
 
-    return None
+    return None, detected_pos
 
 
 if __name__ == "__main__":
