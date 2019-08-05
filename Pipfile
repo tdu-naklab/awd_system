@@ -11,6 +11,7 @@ opencv-python = "*"
 pyopengl = "*"
 zbarlight = "*"
 pillow = "*"
+python-socketio = {extras = ["client"],version = "*"}
 
 [requires]
 python_version = "3.7"

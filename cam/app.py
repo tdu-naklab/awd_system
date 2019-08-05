@@ -5,14 +5,19 @@ from enum import Enum
 import time
 import urllib.request
 import json
+import socketio
 import zbarlight
 
 WIDTH = 1920
 HEIGHT = 1080
 FPS = 60
 SEARCH_LINE = [250, 550, 850]
-SERVER_URL = 'http://localhost:3000'
-HTTP_HEADERS = {'Content-Type": "application/json'}
+SERVER_URL = 'http://localhost:8080'
+HTTP_HEADERS = {'Content-Type': 'application/json', 'charset': 'utf-8'}
+COURSE_NUM = 1
+
+sio = socketio.Client()
+sio.connect(SERVER_URL)
 
 
 class State(Enum):
@@ -24,6 +29,7 @@ class State(Enum):
 
 def main():
     state = State.WAITING
+    sio.emit('mymsg', 'python')
 
     # cap = cv2.VideoCapture('./miniyonku4.mp4')
     cap = cv2.VideoCapture(0)
@@ -37,6 +43,9 @@ def main():
     players_start_time = [None, None, None]
     players_time = [None, None, None]
     players_mask = [False, False, False]
+
+    reg_flg = False
+    race_id = None
 
     while True:
         ret, frame = cap.read()
@@ -71,14 +80,39 @@ def main():
             players_start_time = [None, None, None]
             players_time = [None, None, None]
             players_mask = [False, False, False]
+            reg_flg = False
+            race_id = None
 
         # REGISTERING
         elif state == State.REGISTERING:
             cv2.putText(screen, 'Registering', (0, 50), cv2.FONT_HERSHEY_PLAIN, 4, (0, 152, 255), 4, cv2.LINE_AA)
-            # バーコードを検出
+            # 何かしらかバーコードを検出
             if any(result):
-                # 登録用APIを叩く処理
-                print(result)
+                for i in range(3):
+                    if result[i] is not None:
+                        players[i] = result[i]
+
+            cv2.putText(screen, str(players) + 'OK?', (0, 100), cv2.FONT_HERSHEY_PLAIN, 2, (0, 152, 255), 2, cv2.LINE_AA)
+            if reg_flg is True:
+                cv2.putText(screen, 'DONE RACE_ID: ' + str(race_id), (0, 150), cv2.FONT_HERSHEY_PLAIN, 2, (0, 152, 255), 2, cv2.LINE_AA)
+            if key == ord('y'):
+                players_data = []
+                for i in range(3):
+                    if players[i] is not None:
+                        players_data.append(players[i])
+                print('register')
+                url = SERVER_URL + '/races'
+                json_data = {
+                    'course': COURSE_NUM,
+                    'players': players_data
+                }
+                print(json.dumps(json_data).encode())
+                req = urllib.request.Request(url, json.dumps(json_data).encode(), HTTP_HEADERS)
+                with urllib.request.urlopen(req) as res:
+                    body = res.read()
+                    race_id = body.decode()
+                    reg_flg = True
+                    sio.emit('race_registered', race_id)
 
         # RACING
         elif state == State.RACING:
@@ -89,8 +123,9 @@ def main():
                 if result[i] is not None:
                     # 初回
                     if len(detected_players_array[i]) == 0:
+                        sio.emit('race_started', {'course': COURSE_NUM, 'lane': i+1})
                         print('started: ' + result[i])
-                        players[i] = result[i]
+
                         detected_players_array[i].append(result[i])
                         players_start_time[i] = time.time()
                     # 2回目以降
@@ -102,6 +137,7 @@ def main():
                             print('goal: ' + result[i])
                             players_time[i] = round(time.time() - players_start_time[i], 3)
                             print(players_time[i])
+                            sio.emit('race_finished', {'course': COURSE_NUM, 'lane': i+1})
 
         # FINISHED
         elif state == State.FINISHED:
@@ -125,7 +161,6 @@ def main():
                 state = State.FINISHED
 
         elif state == State.RACING and key == ord('q'):  # Q 試合やりなおし
-            players = [None, None, None]
             detected_players_array = [[], [], []]
             players_start_time = [None, None, None]
             players_time = [None, None, None]
