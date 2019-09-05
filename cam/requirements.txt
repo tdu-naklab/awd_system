@@ -1,0 +1,5 @@
+pyzbar
+pandas
+numpy
+opencv-python
+PyOpenGL
